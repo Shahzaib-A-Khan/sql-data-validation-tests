@@ -1,0 +1,57 @@
+name: Data Quality Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  clean-data:
+    name: Checks pass on clean data
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - name: Start the database
+        run: docker compose up -d --wait
+      - name: Run data quality checks
+        run: npx playwright test
+      - name: Show database logs on failure
+        if: failure()
+        run: docker compose logs db
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  dirty-data:
+    name: Checks fail on bad data
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - name: Start the database
+        run: docker compose up -d --wait
+      - name: Inject bad data
+        run: cat db/dirty/dirty-data.sql | docker compose exec -T db psql -U qa -d shop
+      - name: The checks must fail
+        run: |
+          if npx playwright test; then
+            echo "The checks passed on bad data, so they are not catching defects."
+            exit 1
+          fi
+          echo "The checks failed on bad data, as they should."

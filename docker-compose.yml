@@ -10,3 +10,8 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U qa -d shop"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
