@@ -47,11 +47,15 @@ jobs:
       - name: Start the database
         run: docker compose up -d --wait
       - name: Inject bad data
-        run: cat db/dirty/dirty-data.sql | docker compose exec -T db psql -U qa -d shop
-      - name: The checks must fail
+        run: cat db/dirty/dirty-data.sql | docker compose exec -T db psql -U qa -d shop -v ON_ERROR_STOP=1
+      - name: The checks must catch every defect
         run: |
-          if npx playwright test; then
-            echo "The checks passed on bad data, so they are not catching defects."
-            exit 1
-          fi
-          echo "The checks failed on bad data, as they should."
+          npx playwright test --reporter=json > results.json || true
+          node -e "
+            const s = JSON.parse(require('fs').readFileSync('results.json','utf8')).stats;
+            console.log('passed:', s.expected, 'failed:', s.unexpected);
+            if (s.unexpected !== 10 || s.expected !== 1) {
+              console.error('Expected exactly 1 passing and 10 failing checks.');
+              process.exit(1);
+            }
+          "
