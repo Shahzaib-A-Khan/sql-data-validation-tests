@@ -1,0 +1,29 @@
+{
+  "name": "sql-data-validation-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shahzaib-A-Khan/sql-data-validation-tests.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Shahzaib-A-Khan/sql-data-validation-tests/issues"
+  },
+  "homepage": "https://github.com/Shahzaib-A-Khan/sql-data-validation-tests#readme",
+  "dependencies": {
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1"
+  }
+}
